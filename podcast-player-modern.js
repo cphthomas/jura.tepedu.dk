@@ -9,24 +9,31 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalDurationEl = container.querySelector('.total-duration');
         const speedControl = container.querySelector('.speed-control-modern');
         const podcastIcon = container.querySelector('.podcast-icon');
+        const progressBarContainer = container.querySelector('.progress-bar-container');
         const progressBar = container.querySelector('.progress-bar');
 
-        if (!audioEl || !waveformEl || !playBtn || !currentTimeEl || !totalDurationEl || !speedControl || !podcastIcon || !progressBar) {
+        if (!audioEl || !waveformEl || !playBtn || !currentTimeEl || !totalDurationEl || !speedControl || !podcastIcon || !progressBarContainer || !progressBar) {
             console.error('One or more podcast player elements are missing.');
             return;
         }
 
         const wavesurfer = WaveSurfer.create({
             container: waveformEl,
-            waveColor: 'rgba(0, 123, 255, 0.1)',
-            progressColor: 'rgba(0, 123, 255, 0.7)',
+            waveColor: 'rgba(108, 117, 125, 0.2)', // Lighter grey for the background wave
+            progressColor: {
+                // Gradient for the progress wave, inspired by the image
+                '0%': 'rgba(255, 105, 180, 0.8)', // Pinkish
+                '50%': 'rgba(0, 191, 255, 0.8)',   // Blueish
+                '100%': 'rgba(255, 105, 180, 0.8)' // Pinkish
+            },
             cursorColor: 'transparent',
-            barWidth: 2,
-            barRadius: 3,
+            barWidth: 3,
+            barRadius: 5, // More rounded bars
             responsive: true,
-            height: 60,
+            height: 80, // A bit taller to look more impressive
             normalize: true,
             media: audioEl,
+            barGap: 2 // Add a small gap between bars
         });
 
         wavesurfer.on('ready', function () {
@@ -45,6 +52,14 @@ document.addEventListener('DOMContentLoaded', function() {
             playBtn.innerHTML = isPlaying ? '<i class="bi bi-pause-fill"></i>' : '<i class="bi bi-play-fill"></i>';
             playBtn.classList.toggle('is-playing', isPlaying);
             podcastIcon.classList.toggle('is-playing', isPlaying);
+        });
+
+        progressBarContainer.addEventListener('click', function(e) {
+            const bounds = this.getBoundingClientRect();
+            const x = e.clientX - bounds.left;
+            const width = bounds.width;
+            const progress = x / width;
+            wavesurfer.seekTo(progress);
         });
 
         let currentSpeed = 1.0;
