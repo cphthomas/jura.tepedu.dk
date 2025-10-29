@@ -4,8 +4,9 @@ const menuItems = [
     { href: 'ressourcer.html', text: 'Ressourcer' },
     { href: 'demand.html', text: 'Efterspørgsel' },
     { href: 'supply.html', text: 'Udbud' },
-    { href: 'markedsbalance.html', text: 'Markedsligevægt' },
-    { href: 'markedsformer.html', text: 'Markedsformer' }   
+    { href: 'markedsbalance.html', text: 'Markedsligevægt' }
+    // ,
+    // { href: 'markedsformer.html', text: 'Markedsformer' }   
 ];
 
 // Function to generate dropdown menu HTML
