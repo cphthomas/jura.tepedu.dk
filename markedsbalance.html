@@ -955,1560 +955,1467 @@
     <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js"></script>
 
-    <!-- plot51 -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        const chartConfigs = {}; // Store configurations for all charts
 
-            // Get the canvas element's context
-            const ctx = document.getElementById('plot51').getContext('2d');
+        // Generic function to create a chart
+        function createChart(canvasId, config) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, config);
+        }
 
-            // Create the new chart instance with the full configuration
-            const myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Efterspørgsel',
-                        data: [
-                            { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
-                            { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
-                        ],
-                        borderColor: 'green',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'green',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Udbud',
-                        data: [
-                            { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
-                            { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
-                        ],
-                        borderColor: 'red',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'red',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Prislinje (P=60)',
-                        data: [{ x: 0, y: 60 }, { x: 80, y: 60 }, { x: 80, y: 0 }],
-                        borderColor: 'black',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures perfectly straight lines
+        // Intersection Observer setup
+        const chartObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const canvasId = entry.target.id;
+                    if (chartConfigs[canvasId]) {
+                        createChart(canvasId, chartConfigs[canvasId]);
+                        observer.unobserve(entry.target); // Stop observing once loaded
                     }
-                        // {
-                        //     label: 'Forbrugeroverskud',
-                        //     data: [{ x: 0, y: 100 }, { x: 80, y: 60 }, { x: 0, y: 60 }],
-                        //     backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        //     borderColor: 'transparent',
-                        //     fill: true,
-                        //     pointRadius: 0,
-                        //     lineTension: 0 // Ensures a sharp, straight-edged triangle
-                        // },
-                        // {
-                        //     label: 'Producentoverskud',
-                        //     data: [{ x: 0, y: 60 }, { x: 80, y: 60 },  { x: 0, y: 20 }],
-                        //     backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                        //     borderColor: 'transparent',
-                        //     fill: true,
-                        //     pointRadius: 0,
-                        //     lineTension: 0 // Ensures a sharp, straight-edged polygon
-                        // }
-
-
-                    ]
-                },
-
-
-
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: 'Ligevægtsmarked (Pris = 60 kr.)',
-                        fontSize: 18
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'linear',
-                            position: 'bottom',
-                            scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 20,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' stk.';
-                                }
-                            }
-                        }],
-                        yAxes: [{
-                            scaleLabel: { display: true, labelString: 'Pris (kr.)' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 10,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' kr.';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title: function () {
-                                return ''; // Remove the title (which displays the X-axis value)
-                            },
-                            label: function (tooltipItem, data) {
-                                const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
-                                let label = datasetLabel;
-                                if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
-                                    const yValue = tooltipItem.yLabel;
-                                    const xValue = tooltipItem.xLabel;
-                                    label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
-                                } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
-                                    // For the equilibrium dashed line, show both X and Y if needed, or just hide
-                                    return ''; // Hide label for the dashed line itself
-                                }
-                                return label;
-                            }
-                        }
-                    },
-                    plugins: {
-                        datalabels: {
-                            // This function controls how the label is formatted
-                            formatter: function (value, context) {
-                                const point = context.dataset.data[context.dataIndex];
-                                return '(' + point.x + ' stk., ' + point.y + ' kr.)';
-                            },
-                            // This function controls which labels are shown
-                            display: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                // Only show labels for these two datasets
-                                return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
-                            },
-                            color: '#333',
-                            font: {
-                                weight: 'bold',
-                                size: 10,
-                            },
-                            align: 'end', // Position the label above the point
-                            offset: 8     // Distance in pixels from the point
-                        }
-                    }
-                },
-                plugins: [ChartDataLabels]
+                }
             });
+        }, {
+            rootMargin: '0px',
+            threshold: 0.1 // Trigger when 10% of the item is visible
         });
+        
+        // plot51
+        chartConfigs['plot51'] = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Efterspørgsel',
+                    data: [
+                        { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
+                        { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
+                    ],
+                    borderColor: 'green',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'green',
+                    lineTension: 0
+                },
+                {
+                    label: 'Udbud',
+                    data: [
+                        { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
+                        { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
+                    ],
+                    borderColor: 'red',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'red',
+                    lineTension: 0
+                },
+                {
+                    label: 'Prislinje (P=60)',
+                    data: [{ x: 0, y: 60 }, { x: 80, y: 60 }, { x: 80, y: 0 }],
+                    borderColor: 'black',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures perfectly straight lines
+                }
+                ]
+            },
+
+
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Ligevægtsmarked (Pris = 60 kr.)',
+                    fontSize: 18
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+                        scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 20,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' stk.';
+                            }
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: { display: true, labelString: 'Pris (kr.)' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 10,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' kr.';
+                            }
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function () {
+                            return ''; // Remove the title (which displays the X-axis value)
+                        },
+                        label: function (tooltipItem, data) {
+                            const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
+                            let label = datasetLabel;
+                            if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
+                                const yValue = tooltipItem.yLabel;
+                                const xValue = tooltipItem.xLabel;
+                                label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
+                            } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
+                                // For the equilibrium dashed line, show both X and Y if needed, or just hide
+                                return ''; // Hide label for the dashed line itself
+                            }
+                            return label;
+                        }
+                    }
+                },
+                plugins: {
+                    datalabels: {
+                        // This function controls how the label is formatted
+                        formatter: function (value, context) {
+                            const point = context.dataset.data[context.dataIndex];
+                            return '(' + point.x + ' stk., ' + point.y + ' kr.)';
+                        },
+                        // This function controls which labels are shown
+                        display: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            // Only show labels for these two datasets
+                            return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10,
+                        },
+                        align: 'end', // Position the label above the point
+                        offset: 8     // Distance in pixels from the point
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        };
+        chartObserver.observe(document.getElementById('plot51'));
     </script>
 
     <!-- plot52 -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Get the canvas element's context
-            const ctx = document.getElementById('plot52').getContext('2d');
-
-            // Create the new chart instance with the full configuration
-            const myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Efterspørgsel',
-                        data: [
-                            { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
-                            { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
-                        ],
-                        borderColor: 'green',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'green',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Udbud',
-                        data: [
-                            { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
-                            { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
-                        ],
-                        borderColor: 'red',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'red',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Prislinje (P=80 kr.)',
-                        data: [
-                            { x: 0, y: 80 },
-                            { x: 120, y: 80 }, // Horizontal line at y=80
-                            null, // Disconnect
-                            { x: 40, y: 0 },
-                            { x: 40, y: 80 }, // Vertical line at x=40
-                            null, // Disconnect
-                            { x: 120, y: 0 },
-                            { x: 120, y: 80 }  // Vertical line at x=120
-                        ],
-                        borderColor: 'black',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures perfectly straight lines
-                    },
-                    {
-                        label: 'Tekst',
-                        data: [{ x: 80, y: 0 }, { x: 80, y: 80 }],
-                        borderColor: 'blue',
-                        borderWidth: 0.0000001,
-                        fill: false,
-                        pointRadius: 0,
-                        pointBackgroundColor: 'blue',
-                        pointBorderColor: 'blue',
-                        lineTension: 0
-                    }
-                        // {
-                        //     label: 'Forbrugeroverskud',
-                        //     data: [{ x: 0, y: 100 }, { x: 80, y: 60 }, { x: 0, y: 60 }],
-                        //     backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        //     borderColor: 'transparent',
-                        //     fill: true,
-                        //     pointRadius: 0,
-                        //     lineTension: 0 // Ensures a sharp, straight-edged triangle
-                        // },
-                        // {
-                        //     label: 'Producentoverskud',
-                        //     data: [{ x: 0, y: 60 }, { x: 80, y: 60 },  { x: 0, y: 20 }],
-                        //     backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                        //     borderColor: 'transparent',
-                        //     fill: true,
-                        //     pointRadius: 0,
-                        //     lineTension: 0 // Ensures a sharp, straight-edged polygon
-                        // }
-
-
-                    ]
+        
+        chartConfigs['plot52'] = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Efterspørgsel',
+                    data: [
+                        { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
+                        { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
+                    ],
+                    borderColor: 'green',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'green',
+                    lineTension: 0
                 },
+                {
+                    label: 'Udbud',
+                    data: [
+                        { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
+                        { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
+                    ],
+                    borderColor: 'red',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'red',
+                    lineTension: 0
+                },
+                {
+                    label: 'Prislinje (P=80 kr.)',
+                    data: [
+                        { x: 0, y: 80 },
+                        { x: 120, y: 80 }, // Horizontal line at y=80
+                        null, // Disconnect
+                        { x: 40, y: 0 },
+                        { x: 40, y: 80 }, // Vertical line at x=40
+                        null, // Disconnect
+                        { x: 120, y: 0 },
+                        { x: 120, y: 80 }  // Vertical line at x=120
+                    ],
+                    borderColor: 'black',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures perfectly straight lines
+                },
+                {
+                    label: 'Tekst',
+                    data: [{ x: 80, y: 0 }, { x: 80, y: 80 }],
+                    borderColor: 'blue',
+                    borderWidth: 0.0000001,
+                    fill: false,
+                    pointRadius: 0,
+                    pointBackgroundColor: 'blue',
+                    pointBorderColor: 'blue',
+                    lineTension: 0
+                }
+
+
+                ]
+            },
 
 
 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: 'Overskudsproduktion (Pris = 80 kr.)',
-                        fontSize: 18
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'linear',
-                            position: 'bottom',
-                            scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 20,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' stk.';
-                                }
-                            }
-                        }],
-                        yAxes: [{
-                            scaleLabel: { display: true, labelString: 'Pris (kr.)' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 10,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' kr.';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title: function () {
-                                return ''; // Remove the title (which displays the X-axis value)
-                            },
-                            label: function (tooltipItem, data) {
-                                const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
-                                let label = datasetLabel;
-                                if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
-                                    const yValue = tooltipItem.yLabel;
-                                    const xValue = tooltipItem.xLabel;
-                                    label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
-                                } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
-                                    // For the equilibrium dashed line, show both X and Y if needed, or just hide
-                                    return ''; // Hide label for the dashed line itself
-                                }
-                                return label;
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Overskudsproduktion (Pris = 80 kr.)',
+                    fontSize: 18
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+                        scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 20,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' stk.';
                             }
                         }
-                    },
-                    plugins: {
-                        datalabels: {
-                            // This function controls how the label is formatted
-                            formatter: function (value, context) {
-                                const datasetLabel = context.dataset.label;
-                                if (datasetLabel === 'Tekst') {
-                                    return 'Overskudsproduktion';
-                                }
-                                const point = context.dataset.data[context.dataIndex];
-                                return '(' + point.x + ' stk., ' + point.y + ' kr.)';
-                            },
-                            // Simple black frame for Tekst
-                            backgroundColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'white' : 'transparent';
-                            },
-                            borderColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'black' : 'transparent';
-                            },
-                            borderWidth: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 1 : 0;
-                            },
-                            // This function controls which labels are shown
-                            display: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                // Show labels for datasets and Tekst
-                                if (datasetLabel === 'Tekst') {
-                                    return context.dataIndex === 1; // Only show label on the top point
-                                }
-                                return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
-                            },
-                            color: '#333',
-                            font: {
-                                weight: 'bold',
-                                size: 10,
-                            },
-                            align: 'end', // Position the label above the point
-                            offset: 8     // Distance in pixels from the point
+                    }],
+                    yAxes: [{
+                        scaleLabel: { display: true, labelString: 'Pris (kr.)' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 10,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' kr.';
+                            }
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function () {
+                            return ''; // Remove the title (which displays the X-axis value)
+                        },
+                        label: function (tooltipItem, data) {
+                            const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
+                            let label = datasetLabel;
+                            if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
+                                const yValue = tooltipItem.yLabel;
+                                const xValue = tooltipItem.xLabel;
+                                label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
+                            } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
+                                // For the equilibrium dashed line, show both X and Y if needed, or just hide
+                                return ''; // Hide label for the dashed line itself
+                            }
+                            return label;
                         }
                     }
                 },
-                plugins: [ChartDataLabels]
-            });
-        });
+                plugins: {
+                    datalabels: {
+                        // This function controls how the label is formatted
+                        formatter: function (value, context) {
+                            const datasetLabel = context.dataset.label;
+                            if (datasetLabel === 'Tekst') {
+                                return 'Overskudsproduktion';
+                            }
+                            const point = context.dataset.data[context.dataIndex];
+                            return '(' + point.x + ' stk., ' + point.y + ' kr.)';
+                        },
+                        // Simple black frame for Tekst
+                        backgroundColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'white' : 'transparent';
+                        },
+                        borderColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'black' : 'transparent';
+                        },
+                        borderWidth: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 1 : 0;
+                        },
+                        // This function controls which labels are shown
+                        display: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            // Show labels for datasets and Tekst
+                            if (datasetLabel === 'Tekst') {
+                                return context.dataIndex === 1; // Only show label on the top point
+                            }
+                            return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10,
+                        },
+                        align: 'end', // Position the label above the point
+                        offset: 8     // Distance in pixels from the point
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        };
+        chartObserver.observe(document.getElementById('plot52'));
+
+
     </script>
 
     <!-- plot53 -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Get the canvas element's context
-            const ctx = document.getElementById('plot53').getContext('2d');
-
-            // Create the new chart instance with the full configuration
-            const myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Efterspørgsel',
-                        data: [
-                            { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
-                            { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
-                        ],
-                        borderColor: 'green',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'green',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Udbud',
-                        data: [
-                            { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
-                            { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
-                        ],
-                        borderColor: 'red',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'red',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Prislinje (P=40 kr.)',
-                        data: [
-                            { x: 0, y: 40 },
-                            { x: 120, y: 40 }, // Horizontal line at y=80
-                            null, // Disconnect
-                            { x: 40, y: 0 },
-                            { x: 40, y: 40 }, // Vertical line at x=40
-                            null, // Disconnect
-                            { x: 120, y: 0 },
-                            { x: 120, y: 40 }  // Vertical line at x=120
-                        ],
-                        borderColor: 'black',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures perfectly straight lines
-                    },
-                    {
-                        label: 'Tekst',
-                        data: [{ x: 80, y: 0 }, { x: 80, y: 28 }],
-                        borderColor: 'blue',
-                        borderWidth: 0.0000001,
-                        fill: false,
-                        pointRadius: 0,
-                        pointBackgroundColor: 'blue',
-                        pointBorderColor: 'blue',
-                        lineTension: 0
-                    }
-                        // {
-                        //     label: 'Forbrugeroverskud',
-                        //     data: [{ x: 0, y: 100 }, { x: 80, y: 60 }, { x: 0, y: 60 }],
-                        //     backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        //     borderColor: 'transparent',
-                        //     fill: true,
-                        //     pointRadius: 0,
-                        //     lineTension: 0 // Ensures a sharp, straight-edged triangle
-                        // },
-                        // {
-                        //     label: 'Producentoverskud',
-                        //     data: [{ x: 0, y: 60 }, { x: 80, y: 60 },  { x: 0, y: 20 }],
-                        //     backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                        //     borderColor: 'transparent',
-                        //     fill: true,
-                        //     pointRadius: 0,
-                        //     lineTension: 0 // Ensures a sharp, straight-edged polygon
-                        // }
-
-
-                    ]
+        
+        chartConfigs['plot53'] = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Efterspørgsel',
+                    data: [
+                        { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
+                        { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
+                    ],
+                    borderColor: 'green',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'green',
+                    lineTension: 0
                 },
+                {
+                    label: 'Udbud',
+                    data: [
+                        { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
+                        { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
+                    ],
+                    borderColor: 'red',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'red',
+                    lineTension: 0
+                },
+                {
+                    label: 'Prislinje (P=40 kr.)',
+                    data: [
+                        { x: 0, y: 40 },
+                        { x: 120, y: 40 }, // Horizontal line at y=80
+                        null, // Disconnect
+                        { x: 40, y: 0 },
+                        { x: 40, y: 40 }, // Vertical line at x=40
+                        null, // Disconnect
+                        { x: 120, y: 0 },
+                        { x: 120, y: 40 }  // Vertical line at x=120
+                    ],
+                    borderColor: 'black',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures perfectly straight lines
+                },
+                {
+                    label: 'Tekst',
+                    data: [{ x: 80, y: 0 }, { x: 80, y: 28 }],
+                    borderColor: 'blue',
+                    borderWidth: 0.0000001,
+                    fill: false,
+                    pointRadius: 0,
+                    pointBackgroundColor: 'blue',
+                    pointBorderColor: 'blue',
+                    lineTension: 0
+                }
+
+
+                ]
+            },
 
 
 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: 'Overskudsefterspørgsel (Pris = 40 kr.)',
-                        fontSize: 18
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'linear',
-                            position: 'bottom',
-                            scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 20,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' stk.';
-                                }
-                            }
-                        }],
-                        yAxes: [{
-                            scaleLabel: { display: true, labelString: 'Pris (kr.)' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 10,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' kr.';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title: function () {
-                                return ''; // Remove the title (which displays the X-axis value)
-                            },
-                            label: function (tooltipItem, data) {
-                                const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
-                                let label = datasetLabel;
-                                if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
-                                    const yValue = tooltipItem.yLabel;
-                                    const xValue = tooltipItem.xLabel;
-                                    label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
-                                } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
-                                    // For the equilibrium dashed line, show both X and Y if needed, or just hide
-                                    return ''; // Hide label for the dashed line itself
-                                }
-                                return label;
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Overskudsefterspørgsel (Pris = 40 kr.)',
+                    fontSize: 18
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+                        scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 20,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' stk.';
                             }
                         }
-                    },
-                    plugins: {
-                        datalabels: {
-                            // This function controls how the label is formatted
-                            formatter: function (value, context) {
-                                const datasetLabel = context.dataset.label;
-                                if (datasetLabel === 'Tekst') {
-                                    return 'Overskudsefterspørgsel';
-                                }
-                                const point = context.dataset.data[context.dataIndex];
-                                return '(' + point.x + ' stk., ' + point.y + ' kr.)';
-                            },
-                            // Simple black frame for Tekst
-                            backgroundColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'white' : 'transparent';
-                            },
-                            borderColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'black' : 'transparent';
-                            },
-                            borderWidth: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 1 : 0;
-                            },
-                            // This function controls which labels are shown
-                            display: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                // Show labels for datasets and Tekst
-                                if (datasetLabel === 'Tekst') {
-                                    return context.dataIndex === 1; // Only show label on the top point
-                                }
-                                return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
-                            },
-                            color: '#333',
-                            font: {
-                                weight: 'bold',
-                                size: 10,
-                            },
-                            align: 'end', // Position the label above the point
-                            offset: 8     // Distance in pixels from the point
+                    }],
+                    yAxes: [{
+                        scaleLabel: { display: true, labelString: 'Pris (kr.)' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 10,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' kr.';
+                            }
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function () {
+                            return ''; // Remove the title (which displays the X-axis value)
+                        },
+                        label: function (tooltipItem, data) {
+                            const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
+                            let label = datasetLabel;
+                            if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
+                                const yValue = tooltipItem.yLabel;
+                                const xValue = tooltipItem.xLabel;
+                                label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
+                            } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
+                                // For the equilibrium dashed line, show both X and Y if needed, or just hide
+                                return ''; // Hide label for the dashed line itself
+                            }
+                            return label;
                         }
                     }
                 },
-                plugins: [ChartDataLabels]
-            });
-        });
+                plugins: {
+                    datalabels: {
+                        // This function controls how the label is formatted
+                        formatter: function (value, context) {
+                            const datasetLabel = context.dataset.label;
+                            if (datasetLabel === 'Tekst') {
+                                return 'Overskudsefterspørgsel';
+                            }
+                            const point = context.dataset.data[context.dataIndex];
+                            return '(' + point.x + ' stk., ' + point.y + ' kr.)';
+                        },
+                        // Simple black frame for Tekst
+                        backgroundColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'white' : 'transparent';
+                        },
+                        borderColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'black' : 'transparent';
+                        },
+                        borderWidth: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 1 : 0;
+                        },
+                        // This function controls which labels are shown
+                        display: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            // Show labels for datasets and Tekst
+                            if (datasetLabel === 'Tekst') {
+                                return context.dataIndex === 1; // Only show label on the top point
+                            }
+                            return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10,
+                        },
+                        align: 'end', // Position the label above the point
+                        offset: 8     // Distance in pixels from the point
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        };
+        chartObserver.observe(document.getElementById('plot53'));
+
     </script>
 
     <!-- plot54 -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Get the canvas element's context
-            const ctx = document.getElementById('plot54').getContext('2d');
-
-            // Create the new chart instance with the full configuration
-            const myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Efterspørgsel',
-                        data: [
-                            { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
-                            { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
-                        ],
-                        borderColor: 'green',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'green',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Ny Efterspørgsel',
-                        data: [
-                            { x: 0, y: 80 }, { x: 20, y: 70 }, { x: 40, y: 60 }, { x: 60, y: 50 }, { x: 80, y: 40 },
-                            { x: 100, y: 30 }, { x: 120, y: 20 }, { x: 140, y: 10 }, { x: 160, y: 0 }
-                        ],
-                        borderColor: 'orange',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'orange',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Udbud',
-                        data: [
-                            { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
-                            { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
-                        ],
-                        borderColor: 'red',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'red',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Prislinje (P=50 kr.)',
-                        data: [
-                            { x: 0, y: 50 },
-                            { x: 60, y: 50 }, // Horizontal line at y=80
-                            null, // Disconnect
-                            { x: 60, y: 0 },
-                            { x: 60, y: 50 }, // Vertical line at x=40
-
-                        ],
-                        borderColor: 'black',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures perfectly straight lines
-                    },
-                    {
-                        label: 'Tekst',
-                        data: [{ x: 60, y: 0 }, { x: 60, y: 38 }],
-                        borderColor: 'blue',
-                        borderWidth: 0.0000001,
-                        fill: false,
-                        pointRadius: 0,
-                        pointBackgroundColor: 'blue',
-                        pointBorderColor: 'blue',
-                        lineTension: 0
-                    }
-                        // {
-                        //     label: 'Forbrugeroverskud',
-                        //     data: [{ x: 0, y: 100 }, { x: 80, y: 60 }, { x: 0, y: 60 }],
-                        //     backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        //     borderColor: 'transparent',
-                        //     fill: true,
-                        //     pointRadius: 0,
-                        //     lineTension: 0 // Ensures a sharp, straight-edged triangle
-                        // },
-                        // {
-                        //     label: 'Producentoverskud',
-                        //     data: [{ x: 0, y: 60 }, { x: 80, y: 60 },  { x: 0, y: 20 }],
-                        //     backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                        //     borderColor: 'transparent',
-                        //     fill: true,
-                        //     pointRadius: 0,
-                        //     lineTension: 0 // Ensures a sharp, straight-edged polygon
-                        // }
-
-
-                    ]
+        
+        chartConfigs['plot54'] = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Efterspørgsel',
+                    data: [
+                        { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
+                        { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
+                    ],
+                    borderColor: 'green',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'green',
+                    lineTension: 0
                 },
+                {
+                    label: 'Ny Efterspørgsel',
+                    data: [
+                        { x: 0, y: 80 }, { x: 20, y: 70 }, { x: 40, y: 60 }, { x: 60, y: 50 }, { x: 80, y: 40 },
+                        { x: 100, y: 30 }, { x: 120, y: 20 }, { x: 140, y: 10 }, { x: 160, y: 0 }
+                    ],
+                    borderColor: 'orange',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'orange',
+                    lineTension: 0
+                },
+                {
+                    label: 'Udbud',
+                    data: [
+                        { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
+                        { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
+                    ],
+                    borderColor: 'red',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'red',
+                    lineTension: 0
+                },
+                {
+                    label: 'Prislinje (P=50 kr.)',
+                    data: [
+                        { x: 0, y: 50 },
+                        { x: 60, y: 50 }, // Horizontal line at y=80
+                        null, // Disconnect
+                        { x: 60, y: 0 },
+                        { x: 60, y: 50 }, // Vertical line at x=40
+
+                    ],
+                    borderColor: 'black',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures perfectly straight lines
+                },
+                {
+                    label: 'Tekst',
+                    data: [{ x: 60, y: 0 }, { x: 60, y: 38 }],
+                    borderColor: 'blue',
+                    borderWidth: 0.0000001,
+                    fill: false,
+                    pointRadius: 0,
+                    pointBackgroundColor: 'blue',
+                    pointBorderColor: 'blue',
+                    lineTension: 0
+                }
+
+
+                ]
+            },
 
 
 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: 'Faldende efterspørgsel fører til ny markedsligevægt',
-                        fontSize: 18
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'linear',
-                            position: 'bottom',
-                            scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 20,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' stk.';
-                                }
-                            }
-                        }],
-                        yAxes: [{
-                            scaleLabel: { display: true, labelString: 'Pris (kr.)' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 10,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' kr.';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title: function () {
-                                return ''; // Remove the title (which displays the X-axis value)
-                            },
-                            label: function (tooltipItem, data) {
-                                const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
-                                let label = datasetLabel;
-                                if (datasetLabel === 'Udbud' || datasetLabel === 'Ny Efterspørgsel') {
-                                    const yValue = tooltipItem.yLabel;
-                                    const xValue = tooltipItem.xLabel;
-                                    label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
-                                } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
-                                    // For the equilibrium dashed line, show both X and Y if needed, or just hide
-                                    return ''; // Hide label for the dashed line itself
-                                }
-                                return label;
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Faldende efterspørgsel fører til ny markedsligevægt',
+                    fontSize: 18
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+                        scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 20,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' stk.';
                             }
                         }
-                    },
-                    plugins: {
-                        datalabels: {
-                            // This function controls how the label is formatted
-                            formatter: function (value, context) {
-                                const datasetLabel = context.dataset.label;
-                                if (datasetLabel === 'Tekst') {
-                                    return 'Ny Efterspørgsel';
-                                }
-                                const point = context.dataset.data[context.dataIndex];
-                                return '(' + point.x + ' stk., ' + point.y + ' kr.)';
-                            },
-                            // Simple black frame for Tekst
-                            backgroundColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'white' : 'transparent';
-                            },
-                            borderColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'black' : 'transparent';
-                            },
-                            borderWidth: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 1 : 0;
-                            },
-                            // This function controls which labels are shown
-                            display: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                // Show labels for datasets and Tekst
-                                if (datasetLabel === 'Tekst') {
-                                    return context.dataIndex === 1; // Only show label on the top point
-                                }
-                                return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud' || datasetLabel === 'Ny Efterspørgsel';
-                            },
-                            color: '#333',
-                            font: {
-                                weight: 'bold',
-                                size: 10,
-                            },
-                            align: 'end', // Position the label above the point
-                            offset: 8     // Distance in pixels from the point
+                    }],
+                    yAxes: [{
+                        scaleLabel: { display: true, labelString: 'Pris (kr.)' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 10,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' kr.';
+                            }
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function () {
+                            return ''; // Remove the title (which displays the X-axis value)
+                        },
+                        label: function (tooltipItem, data) {
+                            const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
+                            let label = datasetLabel;
+                            if (datasetLabel === 'Udbud' || datasetLabel === 'Ny Efterspørgsel') {
+                                const yValue = tooltipItem.yLabel;
+                                const xValue = tooltipItem.xLabel;
+                                label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
+                            } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
+                                // For the equilibrium dashed line, show both X and Y if needed, or just hide
+                                return ''; // Hide label for the dashed line itself
+                            }
+                            return label;
                         }
                     }
                 },
-                plugins: [ChartDataLabels]
-            });
-        });
+                plugins: {
+                    datalabels: {
+                        // This function controls how the label is formatted
+                        formatter: function (value, context) {
+                            const datasetLabel = context.dataset.label;
+                            if (datasetLabel === 'Tekst') {
+                                return 'Ny Efterspørgsel';
+                            }
+                            const point = context.dataset.data[context.dataIndex];
+                            return '(' + point.x + ' stk., ' + point.y + ' kr.)';
+                        },
+                        // Simple black frame for Tekst
+                        backgroundColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'white' : 'transparent';
+                        },
+                        borderColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'black' : 'transparent';
+                        },
+                        borderWidth: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 1 : 0;
+                        },
+                        // This function controls which labels are shown
+                        display: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            // Show labels for datasets and Tekst
+                            if (datasetLabel === 'Tekst') {
+                                return context.dataIndex === 1; // Only show label on the top point
+                            }
+                            return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud' || datasetLabel === 'Ny Efterspørgsel';
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10,
+                        },
+                        align: 'end', // Position the label above the point
+                        offset: 8     // Distance in pixels from the point
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        };
+        chartObserver.observe(document.getElementById('plot54'));
+
     </script>
 
     <!-- plot55 -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Get the canvas element's context
-            const ctx = document.getElementById('plot55').getContext('2d');
-
-            // Create the new chart instance with the full configuration
-            const myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Efterspørgsel',
-                        data: [
-                            { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
-                            { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
-                        ],
-                        borderColor: 'green',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'green',
-                        lineTension: 0
-                    },
-
-                    {
-                        label: 'gammelt Udbud',
-                        data: [
-                            { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
-                            { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
-                        ],
-                        borderColor: 'red',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'red',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Øget Udbud',
-                        data: [
-                            { x: 0, y: 20 }, { x: 20, y: 25 }, { x: 40, y: 30 }, { x: 60, y: 35 }, { x: 80, y: 40 },
-                            { x: 100, y: 50 }, { x: 120, y: 60 }, { x: 140, y: 70 }, { x: 160, y: 80 }, { x: 180, y: 90 },
-                            { x: 200, y: 100 }
-                        ],
-                        borderColor: 'orange',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'orange',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Prislinje (P=50 kr.)',
-                        data: [
-                            { x: 0, y: 50 },
-                            { x: 100, y: 50 }, // Horizontal line at y=80
-                            null, // Disconnect
-                            { x: 100, y: 0 },
-                            { x: 100, y: 50 }, // Vertical line at x=40
-
-                        ],
-                        borderColor: 'black',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures perfectly straight lines
-                    },
-                    {
-                        label: 'Tekst',
-                        data: [{ x: 100, y: 0 }, { x: 100, y: 38 }],
-                        borderColor: 'blue',
-                        borderWidth: 0.0000001,
-                        fill: false,
-                        pointRadius: 0,
-                        pointBackgroundColor: 'black',
-                        pointBorderColor: 'black',
-                        lineTension: 0
-                    }
-                        // {
-                        //     label: 'Forbrugeroverskud',
-                        //     data: [{ x: 0, y: 100 }, { x: 80, y: 60 }, { x: 0, y: 60 }],
-                        //     backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        //     borderColor: 'transparent',
-                        //     fill: true,
-                        //     pointRadius: 0,
-                        //     lineTension: 0 // Ensures a sharp, straight-edged triangle
-                        // },
-                        // {
-                        //     label: 'Producentoverskud',
-                        //     data: [{ x: 0, y: 60 }, { x: 80, y: 60 },  { x: 0, y: 20 }],
-                        //     backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                        //     borderColor: 'transparent',
-                        //     fill: true,
-                        //     pointRadius: 0,
-                        //     lineTension: 0 // Ensures a sharp, straight-edged polygon
-                        // }
-
-
-                    ]
+        
+        chartConfigs['plot55'] = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Efterspørgsel',
+                    data: [
+                        { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
+                        { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
+                    ],
+                    borderColor: 'green',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'green',
+                    lineTension: 0
                 },
 
+                {
+                    label: 'gammelt Udbud',
+                    data: [
+                        { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
+                        { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
+                    ],
+                    borderColor: 'red',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'red',
+                    lineTension: 0
+                },
+                {
+                    label: 'Øget Udbud',
+                    data: [
+                        { x: 0, y: 20 }, { x: 20, y: 25 }, { x: 40, y: 30 }, { x: 60, y: 35 }, { x: 80, y: 40 },
+                        { x: 100, y: 50 }, { x: 120, y: 60 }, { x: 140, y: 70 }, { x: 160, y: 80 }, { x: 180, y: 90 },
+                        { x: 200, y: 100 }
+                    ],
+                    borderColor: 'orange',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'orange',
+                    lineTension: 0
+                },
+                {
+                    label: 'Prislinje (P=50 kr.)',
+                    data: [
+                        { x: 0, y: 50 },
+                        { x: 100, y: 50 }, // Horizontal line at y=80
+                        null, // Disconnect
+                        { x: 100, y: 0 },
+                        { x: 100, y: 50 }, // Vertical line at x=40
+
+                    ],
+                    borderColor: 'black',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures perfectly straight lines
+                },
+                {
+                    label: 'Tekst',
+                    data: [{ x: 100, y: 0 }, { x: 100, y: 38 }],
+                    borderColor: 'blue',
+                    borderWidth: 0.0000001,
+                    fill: false,
+                    pointRadius: 0,
+                    pointBackgroundColor: 'black',
+                    pointBorderColor: 'black',
+                    lineTension: 0
+                }
 
 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: 'Øget udbud fører til ny markedsligevægt',
-                        fontSize: 18
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'linear',
-                            position: 'bottom',
-                            scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 20,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' stk.';
-                                }
-                            }
-                        }],
-                        yAxes: [{
-                            scaleLabel: { display: true, labelString: 'Pris (kr.)' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 10,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' kr.';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title: function () {
-                                return ''; // Remove the title (which displays the X-axis value)
-                            },
-                            label: function (tooltipItem, data) {
-                                const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
-                                let label = datasetLabel;
-                                if (datasetLabel === 'Øget Udbud' || datasetLabel === 'Efterspørgsel') {
-                                    const yValue = tooltipItem.yLabel;
-                                    const xValue = tooltipItem.xLabel;
-                                    label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
-                                } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
-                                    // For the equilibrium dashed line, show both X and Y if needed, or just hide
-                                    return ''; // Hide label for the dashed line itself
-                                }
-                                return label;
+                ]
+            },
+
+
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Øget udbud fører til ny markedsligevægt',
+                    fontSize: 18
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+                        scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 20,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' stk.';
                             }
                         }
-                    },
-                    plugins: {
-                        datalabels: {
-                            // This function controls how the label is formatted
-                            formatter: function (value, context) {
-                                const datasetLabel = context.dataset.label;
-                                if (datasetLabel === 'Tekst') {
-                                    return 'Ny pris og mængde';
-                                }
-                                const point = context.dataset.data[context.dataIndex];
-                                return '(' + point.x + ' stk., ' + point.y + ' kr.)';
-                            },
-                            // Simple black frame for Tekst
-                            backgroundColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'white' : 'transparent';
-                            },
-                            borderColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'black' : 'transparent';
-                            },
-                            borderWidth: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 1 : 0;
-                            },
-                            // This function controls which labels are shown
-                            display: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                // Show labels for datasets and Tekst
-                                if (datasetLabel === 'Tekst') {
-                                    return context.dataIndex === 1; // Only show label on the top point
-                                }
-                                return datasetLabel === 'Efterspørgsel' || datasetLabel === 'gammelt Udbud' || datasetLabel === 'Øget Udbud';
-                            },
-                            color: '#333',
-                            font: {
-                                weight: 'bold',
-                                size: 10,
-                            },
-                            align: 'end', // Position the label above the point
-                            offset: 8     // Distance in pixels from the point
+                    }],
+                    yAxes: [{
+                        scaleLabel: { display: true, labelString: 'Pris (kr.)' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 10,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' kr.';
+                            }
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function () {
+                            return ''; // Remove the title (which displays the X-axis value)
+                        },
+                        label: function (tooltipItem, data) {
+                            const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
+                            let label = datasetLabel;
+                            if (datasetLabel === 'Øget Udbud' || datasetLabel === 'Efterspørgsel') {
+                                const yValue = tooltipItem.yLabel;
+                                const xValue = tooltipItem.xLabel;
+                                label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
+                            } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
+                                // For the equilibrium dashed line, show both X and Y if needed, or just hide
+                                return ''; // Hide label for the dashed line itself
+                            }
+                            return label;
                         }
                     }
                 },
-                plugins: [ChartDataLabels]
-            });
-        });
+                plugins: {
+                    datalabels: {
+                        // This function controls how the label is formatted
+                        formatter: function (value, context) {
+                            const datasetLabel = context.dataset.label;
+                            if (datasetLabel === 'Tekst') {
+                                return 'Ny pris og mængde';
+                            }
+                            const point = context.dataset.data[context.dataIndex];
+                            return '(' + point.x + ' stk., ' + point.y + ' kr.)';
+                        },
+                        // Simple black frame for Tekst
+                        backgroundColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'white' : 'transparent';
+                        },
+                        borderColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'black' : 'transparent';
+                        },
+                        borderWidth: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 1 : 0;
+                        },
+                        // This function controls which labels are shown
+                        display: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            // Show labels for datasets and Tekst
+                            if (datasetLabel === 'Tekst') {
+                                return context.dataIndex === 1; // Only show label on the top point
+                            }
+                            return datasetLabel === 'Efterspørgsel' || datasetLabel === 'gammelt Udbud' || datasetLabel === 'Øget Udbud';
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10,
+                        },
+                        align: 'end', // Position the label above the point
+                        offset: 8     // Distance in pixels from the point
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        };
+        chartObserver.observe(document.getElementById('plot55'));
+
     </script>
 
     <!-- plot56 -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Get the canvas element's context
-            const ctx = document.getElementById('plot56').getContext('2d');
-
-            // Create the new chart instance with the full configuration
-            const myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Efterspørgsel',
-                        data: [
-                            { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
-                            { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
-                        ],
-                        borderColor: 'green',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'green',
-                        lineTension: 0
-                    },
-
-
-                    {
-                        label: 'Udbud',
-                        data: [
-                            { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
-                            { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
-                        ],
-                        borderColor: 'red',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'red',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Prislinje (P=50 kr.)',
-                        data: [
-                            { x: 0, y: 60 },
-                            { x: 80, y: 60 }, // Horizontal line at y=80
-                            null, // Disconnect
-                            { x: 80, y: 0 },
-                            { x: 80, y: 60 }, // Vertical line at x=40
-
-                        ],
-                        borderColor: 'black',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures perfectly straight lines
-                    },
-                    {
-                        label: 'Tekst',
-                        data: [{ x: 20, y: 0 }, { x: 20, y: 50 }],
-                        borderColor: 'blue',
-                        borderWidth: 0.0000001,
-                        fill: false,
-                        pointRadius: 0,
-                        pointBackgroundColor: 'black',
-                        pointBorderColor: 'black',
-                        lineTension: 0
-                    }
-                        ,
-                    {
-                        label: 'Forbrugeroverskud',
-                        data: [{ x: 0, y: 100 }, { x: 80, y: 60 }, { x: 0, y: 60 }],
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        borderColor: 'transparent',
-                        fill: true,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures a sharp, straight-edged triangle
-                    },
-                    {
-                        label: 'Producentoverskud',
-                        data: [{ x: 0, y: 60 }, { x: 80, y: 60 }, { x: 0, y: 20 }],
-                        backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                        borderColor: 'transparent',
-                        fill: true,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures a sharp, straight-edged polygon
-                    }
-
-
-                    ]
+        
+        chartConfigs['plot56'] = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Efterspørgsel',
+                    data: [
+                        { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
+                        { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
+                    ],
+                    borderColor: 'green',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'green',
+                    lineTension: 0
                 },
 
 
+                {
+                    label: 'Udbud',
+                    data: [
+                        { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
+                        { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
+                    ],
+                    borderColor: 'red',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'red',
+                    lineTension: 0
+                },
+                {
+                    label: 'Prislinje (P=50 kr.)',
+                    data: [
+                        { x: 0, y: 60 },
+                        { x: 80, y: 60 }, // Horizontal line at y=80
+                        null, // Disconnect
+                        { x: 80, y: 0 },
+                        { x: 80, y: 60 }, // Vertical line at x=40
 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: 'Forbrugeroverskud og producentoverskud',
-                        fontSize: 18
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'linear',
-                            position: 'bottom',
-                            scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 20,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' stk.';
-                                }
-                            }
-                        }],
-                        yAxes: [{
-                            scaleLabel: { display: true, labelString: 'Pris (kr.)' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 10,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' kr.';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title: function () {
-                                return ''; // Remove the title (which displays the X-axis value)
-                            },
-                            label: function (tooltipItem, data) {
-                                const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
-                                let label = datasetLabel;
-                                if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
-                                    const yValue = tooltipItem.yLabel;
-                                    const xValue = tooltipItem.xLabel;
-                                    label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
-                                } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
-                                    // For the equilibrium dashed line, show both X and Y if needed, or just hide
-                                    return ''; // Hide label for the dashed line itself
-                                }
-                                return label;
+                    ],
+                    borderColor: 'black',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures perfectly straight lines
+                },
+                {
+                    label: 'Tekst',
+                    data: [{ x: 20, y: 0 }, { x: 20, y: 50 }],
+                    borderColor: 'blue',
+                    borderWidth: 0.0000001,
+                    fill: false,
+                    pointRadius: 0,
+                    pointBackgroundColor: 'black',
+                    pointBorderColor: 'black',
+                    lineTension: 0
+                }
+                ,
+                {
+                    label: 'Forbrugeroverskud',
+                    data: [{ x: 0, y: 100 }, { x: 80, y: 60 }, { x: 0, y: 60 }],
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'transparent',
+                    fill: true,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures a sharp, straight-edged triangle
+                },
+                {
+                    label: 'Producentoverskud',
+                    data: [{ x: 0, y: 60 }, { x: 80, y: 60 }, { x: 0, y: 20 }],
+                    backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                    borderColor: 'transparent',
+                    fill: true,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures a sharp, straight-edged polygon
+                }
+
+
+                ]
+            },
+
+
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Forbrugeroverskud og producentoverskud',
+                    fontSize: 18
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+                        scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 20,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' stk.';
                             }
                         }
-                    },
-                    plugins: {
-                        datalabels: {
-                            // This function controls how the label is formatted
-                            formatter: function (value, context) {
-                                const datasetLabel = context.dataset.label;
-                                if (datasetLabel === 'Tekst') {
-                                    return 'Forbrugeroverskud: Turkis\nProducentoverskud: Lilla';
-                                }
-                                const point = context.dataset.data[context.dataIndex];
-                                return '(' + point.x + ' stk., ' + point.y + ' kr.)';
-                            },
-                            // Simple black frame for Tekst
-                            backgroundColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'white' : 'transparent';
-                            },
-                            borderColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'black' : 'transparent';
-                            },
-                            borderWidth: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 1 : 0;
-                            },
-                            // This function controls which labels are shown
-                            display: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                // Show labels for datasets and Tekst
-                                if (datasetLabel === 'Tekst') {
-                                    return context.dataIndex === 1; // Only show label on the top point
-                                }
-                                return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
-                            },
-                            color: '#333',
-                            font: {
-                                weight: 'bold',
-                                size: 10,
-                            },
-                            align: 'end', // Position the label above the point
-                            offset: 8     // Distance in pixels from the point
+                    }],
+                    yAxes: [{
+                        scaleLabel: { display: true, labelString: 'Pris (kr.)' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 10,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' kr.';
+                            }
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function () {
+                            return ''; // Remove the title (which displays the X-axis value)
+                        },
+                        label: function (tooltipItem, data) {
+                            const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
+                            let label = datasetLabel;
+                            if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
+                                const yValue = tooltipItem.yLabel;
+                                const xValue = tooltipItem.xLabel;
+                                label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
+                            } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
+                                // For the equilibrium dashed line, show both X and Y if needed, or just hide
+                                return ''; // Hide label for the dashed line itself
+                            }
+                            return label;
                         }
                     }
                 },
-                plugins: [ChartDataLabels]
-            });
-        });
+                plugins: {
+                    datalabels: {
+                        // This function controls how the label is formatted
+                        formatter: function (value, context) {
+                            const datasetLabel = context.dataset.label;
+                            if (datasetLabel === 'Tekst') {
+                                return 'Forbrugeroverskud: Turkis\nProducentoverskud: Lilla';
+                            }
+                            const point = context.dataset.data[context.dataIndex];
+                            return '(' + point.x + ' stk., ' + point.y + ' kr.)';
+                        },
+                        // Simple black frame for Tekst
+                        backgroundColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'white' : 'transparent';
+                        },
+                        borderColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'black' : 'transparent';
+                        },
+                        borderWidth: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 1 : 0;
+                        },
+                        // This function controls which labels are shown
+                        display: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            // Show labels for datasets and Tekst
+                            if (datasetLabel === 'Tekst') {
+                                return context.dataIndex === 1; // Only show label on the top point
+                            }
+                            return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10,
+                        },
+                        align: 'end', // Position the label above the point
+                        offset: 8     // Distance in pixels from the point
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        };
+        chartObserver.observe(document.getElementById('plot56'));
+
     </script>
 
     <!-- plot57 -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Get the canvas element's context
-            const ctx = document.getElementById('plot57').getContext('2d');
-
-            // Create the new chart instance with the full configuration
-            const myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Efterspørgsel',
-                        data: [
-                            { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
-                            { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
-                        ],
-                        borderColor: 'green',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'green',
-                        lineTension: 0
-                    },
-
-
-                    {
-                        label: 'Udbud',
-                        data: [
-                            { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
-                            { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
-                        ],
-                        borderColor: 'red',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'red',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Prislinje (P=80 kr.)',
-                        data: [
-                            { x: 0, y: 80 },
-                            { x: 40, y: 80 }, // Horizontal line at y=80
-                            null, // Disconnect
-                            { x: 40, y: 0 },
-                            { x: 40, y: 80 }, // Vertical line at x=40
-
-                        ],
-                        borderColor: 'black',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures perfectly straight lines
-                    },
-                    {
-                        label: 'Tekst',
-                        data: [{ x: 20, y: 0 }, { x: 20, y: 50 }],
-                        borderColor: 'blue',
-                        borderWidth: 0.0000001,
-                        fill: false,
-                        pointRadius: 0,
-                        pointBackgroundColor: 'black',
-                        pointBorderColor: 'black',
-                        lineTension: 0
-                    }
-                        ,
-                    {
-                        label: 'Forbrugeroverskud',
-                        data: [{ x: 0, y: 80 }, { x: 40, y: 80 }, { x: 0, y: 100 }],
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        borderColor: 'transparent',
-                        fill: true,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures a sharp, straight-edged triangle
-                    },
-                    {
-                        label: 'Producentoverskud',
-                        data: [{ x: 0, y: 20 }, { x: 40, y: 40 }, { x: 40, y: 80 }, { x: 0, y: 80 }],
-                        backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                        borderColor: 'transparent',
-                        fill: true,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures a sharp, straight-edged polygon
-                    },
-                    {
-                        label: 'Dødvægtstab DWL',
-                        data: [{ x: 40, y: 80 }, { x: 80, y: 60 }, { x: 40, y: 40 }],
-                        backgroundColor: 'rgba(128, 128, 128, 0.5)', // Grey for DWL
-                        borderColor: 'transparent',
-                        fill: true,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures a sharp, straight-edged triangle
-                    }
-
-
-
-                    ]
+        
+        chartConfigs['plot57'] = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Efterspørgsel',
+                    data: [
+                        { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
+                        { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
+                    ],
+                    borderColor: 'green',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'green',
+                    lineTension: 0
                 },
 
 
+                {
+                    label: 'Udbud',
+                    data: [
+                        { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
+                        { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
+                    ],
+                    borderColor: 'red',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'red',
+                    lineTension: 0
+                },
+                {
+                    label: 'Prislinje (P=80 kr.)',
+                    data: [
+                        { x: 0, y: 80 },
+                        { x: 40, y: 80 }, // Horizontal line at y=80
+                        null, // Disconnect
+                        { x: 40, y: 0 },
+                        { x: 40, y: 80 }, // Vertical line at x=40
 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: 'Forbrugeroverskud og producentoverskud ved pris på 80 kr.',
-                        fontSize: 18
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'linear',
-                            position: 'bottom',
-                            scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 20,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' stk.';
-                                }
-                            }
-                        }],
-                        yAxes: [{
-                            scaleLabel: { display: true, labelString: 'Pris (kr.)' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 10,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' kr.';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title: function () {
-                                return ''; // Remove the title (which displays the X-axis value)
-                            },
-                            label: function (tooltipItem, data) {
-                                const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
-                                let label = datasetLabel;
-                                if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
-                                    const yValue = tooltipItem.yLabel;
-                                    const xValue = tooltipItem.xLabel;
-                                    label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
-                                } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
-                                    // For the equilibrium dashed line, show both X and Y if needed, or just hide
-                                    return ''; // Hide label for the dashed line itself
-                                }
-                                return label;
+                    ],
+                    borderColor: 'black',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures perfectly straight lines
+                },
+                {
+                    label: 'Tekst',
+                    data: [{ x: 20, y: 0 }, { x: 20, y: 50 }],
+                    borderColor: 'blue',
+                    borderWidth: 0.0000001,
+                    fill: false,
+                    pointRadius: 0,
+                    pointBackgroundColor: 'black',
+                    pointBorderColor: 'black',
+                    lineTension: 0
+                }
+                ,
+                {
+                    label: 'Forbrugeroverskud',
+                    data: [{ x: 0, y: 80 }, { x: 40, y: 80 }, { x: 0, y: 100 }],
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'transparent',
+                    fill: true,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures a sharp, straight-edged triangle
+                },
+                {
+                    label: 'Producentoverskud',
+                    data: [{ x: 0, y: 20 }, { x: 40, y: 40 }, { x: 40, y: 80 }, { x: 0, y: 80 }],
+                    backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                    borderColor: 'transparent',
+                    fill: true,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures a sharp, straight-edged polygon
+                },
+                {
+                    label: 'Dødvægtstab DWL',
+                    data: [{ x: 40, y: 80 }, { x: 80, y: 60 }, { x: 40, y: 40 }],
+                    backgroundColor: 'rgba(128, 128, 128, 0.5)', // Grey for DWL
+                    borderColor: 'transparent',
+                    fill: true,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures a sharp, straight-edged triangle
+                }
+
+
+
+                ]
+            },
+
+
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Forbrugeroverskud og producentoverskud ved pris på 80 kr.',
+                    fontSize: 18
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+                        scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 20,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' stk.';
                             }
                         }
-                    },
-                    plugins: {
-                        datalabels: {
-                            // This function controls how the label is formatted
-                            formatter: function (value, context) {
-                                const datasetLabel = context.dataset.label;
-                                if (datasetLabel === 'Tekst') {
-                                    return 'Forbrugeroverskud: Turkis\nProducentoverskud: Lilla\nDødvægtstab: Grå';
-                                }
-                                const point = context.dataset.data[context.dataIndex];
-                                return '(' + point.x + ' stk., ' + point.y + ' kr.)';
-                            },
-                            // Simple black frame for Tekst
-                            backgroundColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'white' : 'transparent';
-                            },
-                            borderColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'black' : 'transparent';
-                            },
-                            borderWidth: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 1 : 0;
-                            },
-                            // This function controls which labels are shown
-                            display: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                // Show labels for datasets and Tekst
-                                if (datasetLabel === 'Tekst') {
-                                    return context.dataIndex === 1; // Only show label on the top point
-                                }
-                                return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
-                            },
-                            color: '#333',
-                            font: {
-                                weight: 'bold',
-                                size: 10,
-                            },
-                            align: 'end', // Position the label above the point
-                            offset: 8     // Distance in pixels from the point
+                    }],
+                    yAxes: [{
+                        scaleLabel: { display: true, labelString: 'Pris (kr.)' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 10,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' kr.';
+                            }
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function () {
+                            return ''; // Remove the title (which displays the X-axis value)
+                        },
+                        label: function (tooltipItem, data) {
+                            const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
+                            let label = datasetLabel;
+                            if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
+                                const yValue = tooltipItem.yLabel;
+                                const xValue = tooltipItem.xLabel;
+                                label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
+                            } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
+                                // For the equilibrium dashed line, show both X and Y if needed, or just hide
+                                return ''; // Hide label for the dashed line itself
+                            }
+                            return label;
                         }
                     }
                 },
-                plugins: [ChartDataLabels]
-            });
-        });
+                plugins: {
+                    datalabels: {
+                        // This function controls how the label is formatted
+                        formatter: function (value, context) {
+                            const datasetLabel = context.dataset.label;
+                            if (datasetLabel === 'Tekst') {
+                                return 'Forbrugeroverskud: Turkis\nProducentoverskud: Lilla\nDødvægtstab: Grå';
+                            }
+                            const point = context.dataset.data[context.dataIndex];
+                            return '(' + point.x + ' stk., ' + point.y + ' kr.)';
+                        },
+                        // Simple black frame for Tekst
+                        backgroundColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'white' : 'transparent';
+                        },
+                        borderColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'black' : 'transparent';
+                        },
+                        borderWidth: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 1 : 0;
+                        },
+                        // This function controls which labels are shown
+                        display: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            // Show labels for datasets and Tekst
+                            if (datasetLabel === 'Tekst') {
+                                return context.dataIndex === 1; // Only show label on the top point
+                            }
+                            return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10,
+                        },
+                        align: 'end', // Position the label above the point
+                        offset: 8     // Distance in pixels from the point
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        };
+        chartObserver.observe(document.getElementById('plot57'));
+
     </script>
 
 
     <!-- plot58 -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Get the canvas element's context
-            const ctx = document.getElementById('plot58').getContext('2d');
-
-            // Create the new chart instance with the full configuration
-            const myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Efterspørgsel',
-                        data: [
-                            { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
-                            { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
-                        ],
-                        borderColor: 'green',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'green',
-                        lineTension: 0
-                    },
-
-
-                    {
-                        label: 'Udbud',
-                        data: [
-                            { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
-                            { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
-                        ],
-                        borderColor: 'red',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'red',
-                        lineTension: 0
-                    },
-                    {
-                        label: 'Prislinje (P=40 kr.)',
-                        data: [
-                            { x: 0, y: 40 },
-                            { x: 40, y: 40 }, // Horizontal line at y=80
-                            null, // Disconnect
-                            { x: 40, y: 0 },
-                            { x: 40, y: 40 }, // Vertical line at x=40
-
-                        ],
-                        borderColor: 'black',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures perfectly straight lines
-                    },
-                    {
-                        label: 'Tekst',
-                        data: [{ x: 20, y: 0 }, { x: 20, y: 50 }],
-                        borderColor: 'black',
-                        borderWidth: 0.0000001,
-                        fill: false,
-                        pointRadius: 0,
-                        pointBackgroundColor: 'black',
-                        pointBorderColor: 'black',
-                        lineTension: 0
-                    }
-                        ,
-                    {
-                        label: 'Forbrugeroverskud',
-                        data: [{ x: 0, y: 40 }, { x: 0, y: 100 }, { x: 40, y: 80 }, { x: 40, y: 40 }, { x: 0, y: 40 }],
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        borderColor: 'transparent',
-                        fill: true,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures a sharp, straight-edged triangle
-                    },
-                    {
-                        label: 'Producentoverskud',
-                        data: [{ x: 0, y: 20 }, { x: 0, y: 40 }, { x: 40, y: 40 }, { x: 0, y: 20 }],
-                        backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                        borderColor: 'transparent',
-                        fill: true,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures a sharp, straight-edged polygon
-                    },
-                    {
-                        label: 'Dødvægtstab DWL',
-                        data: [{ x: 40, y: 80 }, { x: 80, y: 60 }, { x: 40, y: 40 }],
-                        backgroundColor: 'rgba(128, 128, 128, 0.5)', // Grey for DWL
-                        borderColor: 'transparent',
-                        fill: true,
-                        pointRadius: 0,
-                        lineTension: 0 // Ensures a sharp, straight-edged triangle
-                    }
-
-
-
-                    ]
+        
+        chartConfigs['plot58'] = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Efterspørgsel',
+                    data: [
+                        { x: 0, y: 100 }, { x: 20, y: 90 }, { x: 40, y: 80 }, { x: 60, y: 70 }, { x: 80, y: 60 },
+                        { x: 100, y: 50 }, { x: 120, y: 40 }, { x: 140, y: 30 }, { x: 160, y: 20 }, { x: 180, y: 10 }, { x: 200, y: 0 }
+                    ],
+                    borderColor: 'green',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'green',
+                    lineTension: 0
                 },
 
 
+                {
+                    label: 'Udbud',
+                    data: [
+                        { x: 0, y: 20 }, { x: 20, y: 30 }, { x: 40, y: 40 }, { x: 60, y: 50 }, { x: 80, y: 60 },
+                        { x: 100, y: 70 }, { x: 120, y: 80 }, { x: 140, y: 90 }, { x: 160, y: 100 }, { x: 180, y: 110 }, { x: 200, y: 120 }
+                    ],
+                    borderColor: 'red',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'red',
+                    lineTension: 0
+                },
+                {
+                    label: 'Prislinje (P=40 kr.)',
+                    data: [
+                        { x: 0, y: 40 },
+                        { x: 40, y: 40 }, // Horizontal line at y=80
+                        null, // Disconnect
+                        { x: 40, y: 0 },
+                        { x: 40, y: 40 }, // Vertical line at x=40
 
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: 'Forbrugeroverskud og producentoverskud ved pris på 40 kr.',
-                        fontSize: 18
-                    },
-                    scales: {
-                        xAxes: [{
-                            type: 'linear',
-                            position: 'bottom',
-                            scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 20,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' stk.';
-                                }
-                            }
-                        }],
-                        yAxes: [{
-                            scaleLabel: { display: true, labelString: 'Pris (kr.)' },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 10,
-                                // This callback function adds ' stk.' to each tick label on the x-axis
-                                callback: function (value, index, values) {
-                                    return value + ' kr.';
-                                }
-                            }
-                        }]
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title: function () {
-                                return ''; // Remove the title (which displays the X-axis value)
-                            },
-                            label: function (tooltipItem, data) {
-                                const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
-                                let label = datasetLabel;
-                                if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
-                                    const yValue = tooltipItem.yLabel;
-                                    const xValue = tooltipItem.xLabel;
-                                    label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
-                                } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
-                                    // For the equilibrium dashed line, show both X and Y if needed, or just hide
-                                    return ''; // Hide label for the dashed line itself
-                                }
-                                return label;
+                    ],
+                    borderColor: 'black',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures perfectly straight lines
+                },
+                {
+                    label: 'Tekst',
+                    data: [{ x: 20, y: 0 }, { x: 20, y: 50 }],
+                    borderColor: 'black',
+                    borderWidth: 0.0000001,
+                    fill: false,
+                    pointRadius: 0,
+                    pointBackgroundColor: 'black',
+                    pointBorderColor: 'black',
+                    lineTension: 0
+                }
+                ,
+                {
+                    label: 'Forbrugeroverskud',
+                    data: [{ x: 0, y: 40 }, { x: 0, y: 100 }, { x: 40, y: 80 }, { x: 40, y: 40 }, { x: 0, y: 40 }],
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'transparent',
+                    fill: true,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures a sharp, straight-edged triangle
+                },
+                {
+                    label: 'Producentoverskud',
+                    data: [{ x: 0, y: 20 }, { x: 0, y: 40 }, { x: 40, y: 40 }, { x: 0, y: 20 }],
+                    backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                    borderColor: 'transparent',
+                    fill: true,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures a sharp, straight-edged polygon
+                },
+                {
+                    label: 'Dødvægtstab DWL',
+                    data: [{ x: 40, y: 80 }, { x: 80, y: 60 }, { x: 40, y: 40 }],
+                    backgroundColor: 'rgba(128, 128, 128, 0.5)', // Grey for DWL
+                    borderColor: 'transparent',
+                    fill: true,
+                    pointRadius: 0,
+                    lineTension: 0 // Ensures a sharp, straight-edged triangle
+                }
+
+
+
+                ]
+            },
+
+
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Forbrugeroverskud og producentoverskud ved pris på 40 kr.',
+                    fontSize: 18
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+                        scaleLabel: { display: true, labelString: 'Efterspørgsel i stk.' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 20,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' stk.';
                             }
                         }
-                    },
-                    plugins: {
-                        datalabels: {
-                            // This function controls how the label is formatted
-                            formatter: function (value, context) {
-                                const datasetLabel = context.dataset.label;
-                                if (datasetLabel === 'Tekst') {
-                                    return 'Forbrugeroverskud: Turkis\nProducentoverskud: Lilla\nDødvægtstab: Grå';
-                                }
-                                const point = context.dataset.data[context.dataIndex];
-                                return '(' + point.x + ' stk., ' + point.y + ' kr.)';
-                            },
-                            // Simple black frame for Tekst
-                            backgroundColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'white' : 'transparent';
-                            },
-                            borderColor: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 'black' : 'transparent';
-                            },
-                            borderWidth: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                return datasetLabel === 'Tekst' ? 1 : 0;
-                            },
-                            // This function controls which labels are shown
-                            display: function (context) {
-                                const datasetLabel = context.dataset.label;
-                                // Show labels for datasets and Tekst
-                                if (datasetLabel === 'Tekst') {
-                                    return context.dataIndex === 1; // Only show label on the top point
-                                }
-                                return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
-                            },
-                            color: '#333',
-                            font: {
-                                weight: 'bold',
-                                size: 10,
-                            },
-                            align: 'end', // Position the label above the point
-                            offset: 8     // Distance in pixels from the point
+                    }],
+                    yAxes: [{
+                        scaleLabel: { display: true, labelString: 'Pris (kr.)' },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 10,
+                            // This callback function adds ' stk.' to each tick label on the x-axis
+                            callback: function (value, index, values) {
+                                return value + ' kr.';
+                            }
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function () {
+                            return ''; // Remove the title (which displays the X-axis value)
+                        },
+                        label: function (tooltipItem, data) {
+                            const datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
+                            let label = datasetLabel;
+                            if (datasetLabel === 'Udbud' || datasetLabel === 'Efterspørgsel') {
+                                const yValue = tooltipItem.yLabel;
+                                const xValue = tooltipItem.xLabel;
+                                label = `${datasetLabel}: Pris: ${yValue} kr., Mængde: ${xValue} stk.`;
+                            } else if (datasetLabel === 'Ligevægt (P=60, X=80)') {
+                                // For the equilibrium dashed line, show both X and Y if needed, or just hide
+                                return ''; // Hide label for the dashed line itself
+                            }
+                            return label;
                         }
                     }
                 },
-                plugins: [ChartDataLabels]
-            });
-        });
-    </script>
+                plugins: {
+                    datalabels: {
+                        // This function controls how the label is formatted
+                        formatter: function (value, context) {
+                            const datasetLabel = context.dataset.label;
+                            if (datasetLabel === 'Tekst') {
+                                return 'Forbrugeroverskud: Turkis\nProducentoverskud: Lilla\nDødvægtstab: Grå';
+                            }
+                            const point = context.dataset.data[context.dataIndex];
+                            return '(' + point.x + ' stk., ' + point.y + ' kr.)';
+                        },
+                        // Simple black frame for Tekst
+                        backgroundColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'white' : 'transparent';
+                        },
+                        borderColor: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 'black' : 'transparent';
+                        },
+                        borderWidth: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            return datasetLabel === 'Tekst' ? 1 : 0;
+                        },
+                        // This function controls which labels are shown
+                        display: function (context) {
+                            const datasetLabel = context.dataset.label;
+                            // Show labels for datasets and Tekst
+                            if (datasetLabel === 'Tekst') {
+                                return context.dataIndex === 1; // Only show label on the top point
+                            }
+                            return datasetLabel === 'Efterspørgsel' || datasetLabel === 'Udbud';
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10,
+                        },
+                        align: 'end', // Position the label above the point
+                        offset: 8     // Distance in pixels from the point
+                        
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        };
+        chartObserver.observe(document.getElementById('plot58'));
 
 
+
+</script>
 
 </body>
 
