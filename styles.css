@@ -317,6 +317,14 @@ kbd {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
 
+.chart-container {
+    position: relative;
+    height: 50vh;
+    width: 100%;
+    margin: 20px auto;
+    text-align: center;
+}
+
 .example-box {
     background-color: #f8f9fa;
     border-left: 4px solid #b3b3b3;
