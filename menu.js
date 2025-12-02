@@ -21,7 +21,9 @@ function generateDropdownMenu() {
         const menuItem = document.createElement('a');
         menuItem.className = 'dropdown-item';
         menuItem.href = item.href;
-        menuItem.textContent = `${index + 1}. ${item.text}`;
+        // index.html is 0, kapitel1.html is 1, etc.
+        const number = index === 0 ? 0 : index;
+        menuItem.textContent = `${number}. ${item.text}`;
         dropdownMenu.appendChild(menuItem);
     });
 }

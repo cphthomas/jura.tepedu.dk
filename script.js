@@ -16,9 +16,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Find chapter number from menuItems array if it exists
+    // index.html is 0, kapitel1.html is 1, etc.
     const chapterNumber = typeof menuItems !== 'undefined'
-        ? menuItems.findIndex(item => item.href.toLowerCase() === currentPage) + 1 // Align with dropdown numbering (1-based index)
-        : 1; // For index.html or other non-chapter pages
+        ? menuItems.findIndex(item => item.href.toLowerCase() === currentPage) // index.html = 0, kapitel1.html = 1
+        : 0; // For index.html or other non-chapter pages
 
     let h2Counter = 0, h3Counter = 0, h4Counter = 0;
 
