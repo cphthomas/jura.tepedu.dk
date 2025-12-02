@@ -1,11 +1,11 @@
 // Menu configuration
 const menuItems = [
     { href: 'index.html', text: 'Forside' },
-    { href: 'kapitel1.html', text: 'Aftaleret & Kreditaftaler' },
-    { href: 'kapitel2.html', text: 'Fordringsret' },
-    { href: 'kapitel3.html', text: 'Sikkerhedsstillelse' },
-    { href: 'kapitel4.html', text: 'Insolvensret' },
-    { href: 'kapitel5.html', text: 'Familie- & Arveret' }
+    { href: 'kapitel1.html', text: 'Juridisk Metode & Aftaleret' },
+    { href: 'kapitel2.html', text: 'Erstatning' },
+    { href: 'kapitel3.html', text: 'Kreditaftaler Kaution & Gældsbreve' },
+    { href: 'kapitel4.html', text: 'Ejendomshandel Tinglysning & Pant' },
+    { href: 'kapitel5.html', text: 'Insolvensret Selskabsret Hvidvask & Compliance' }
 ];
 
 // Function to generate dropdown menu HTML
