@@ -41,7 +41,19 @@ document.addEventListener("DOMContentLoaded", function() {
             numberPrefix = chapterNumber + '.' + h2Counter + '.' + h3Counter + '.' + h4Counter + ' ';
         }
 
-        let headingText = heading.innerText.replace(/^\d+(\.\d+)*\s+/, '');
+        // Remove all manual numbering patterns from heading text
+        // First get the text content (handles nested HTML elements)
+        let headingText = heading.textContent || heading.innerText || '';
+        
+        // Remove all manual numbering patterns
+        headingText = headingText
+            .replace(/^\d+(\.\d+)+\.?\s*/, '') // Remove "3.1.", "7.1.", "1.2.3." etc. at start
+            .replace(/^\d+\.\s*/, '') // Remove "1.", "2." etc. at start
+            .replace(/^Trin\s+\d+\s*:\s*/i, '') // Remove "Trin 1:", "Trin 2:" etc.
+            .replace(/^[A-Z]\.\s*/, '') // Remove "A.", "B.", "C." etc. at start (these are handled separately)
+            .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
+            .trim();
+        
         const id = heading.id || headingText.replace(/\s+/g, '-').toLowerCase();
         heading.id = id;
         heading.innerHTML = numberPrefix + headingText;
